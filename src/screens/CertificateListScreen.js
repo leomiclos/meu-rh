@@ -29,12 +29,12 @@ const CertificadosScreen = () => {
   }, []);
 
   const fetchCertificados = async (user) => {
-    try {
+    try {      
       setLoading(true);
       const endpoint =
         user.tipo_funcionario === "admin"
           ? `${API_URL}/certificados`
-          : `${API_URL}/certificados/funcionario/${user.id}`;
+          : `${API_URL}/certificados/funcionario/${user.usuario}`;
 
       const response = await fetch(endpoint);
       const data = await response.json();
@@ -53,6 +53,8 @@ const CertificadosScreen = () => {
         );
 
         setCertificados(certificadosComNomes);
+        console.log(certificadosComNomes);
+        
       } else {
         Alert.alert("Erro", data.error || "Erro ao obter certificados.");
       }
@@ -63,7 +65,8 @@ const CertificadosScreen = () => {
     }
   };
 
-  const deleteCertificado = async (id) => {    
+  const deleteCertificado = async (id) => {   
+     
     try {
       const response = await fetch(`${API_URL}/certificados/${id}`, {
         method: "DELETE",

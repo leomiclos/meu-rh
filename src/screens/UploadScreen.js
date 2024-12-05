@@ -6,6 +6,7 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '@env';
 import { Modal, ActivityIndicator } from 'react-native';
+import ImageResizer from 'react-native-image-resizer';
 
 
 const UploadScreen = ({ navigation }) => {
@@ -15,6 +16,7 @@ const UploadScreen = ({ navigation }) => {
   const [usersList, setUsersList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
+
 
 
   const requestPermissions = async (type) => {
@@ -55,7 +57,9 @@ const UploadScreen = ({ navigation }) => {
     const hasPermission = await requestPermissions('camera');
     if (!hasPermission) return;
   
-    let result = await ImagePicker.launchCameraAsync({
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
       quality: 1,
     });
   
@@ -111,7 +115,7 @@ const UploadScreen = ({ navigation }) => {
 
     const certificateOwner = userData?.tipo_funcionario === 'admin' ? selectedUser : userData?.usuario;
     const certificateOwnerId = userData?.tipo_funcionario === 'admin' ? null : userData?.id;
-
+    const resizedImage = await resizeImage(selectedImage);
 
     const formData = new FormData();
     formData.append('user_name', certificateOwner);  // Envia o nome do usuário, não o nome
@@ -130,9 +134,11 @@ const UploadScreen = ({ navigation }) => {
         },
         body: formData,
       });
-
-      const result = await response.json();
-
+    
+      const responseText = await response.text(); // Tente pegar a resposta como texto
+      console.log('API Response:', responseText);
+    
+      const result = JSON.parse(responseText); // Tente converter para JSON
       if (response.ok) {
         alert('Certificado enviado com sucesso!');
         resetForm();
@@ -143,9 +149,8 @@ const UploadScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Erro ao enviar o certificado:', error);
       alert('Erro ao enviar o certificado. Tente novamente!');
-    } finally {
-      setIsLoading(false); // Desativar o loading
     }
+    
   };
 
   // Função para resetar o formulário
